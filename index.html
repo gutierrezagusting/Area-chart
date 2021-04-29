@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<style>
+        .chart-container {
+            max-width: 1050px;
+            border: 0px solid red;
+            margin: 0 auto;
+            /* auto centers the div */
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        svg {
+            border: 0px solid purple;
+            overflow: visible;
+        }
+
+
+        h1 {
+            border: 0px solid green;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chart-container">
+        <h1 class="headline">
+        More than 3 Million American Lost their Job Last Month. See your State
+        </h1>
+
+        <svg width="1050px" height="0.01px">
+
+        </svg>
+    </div>
+</body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<script>
+
+var margin = {top: 0, right: 20, bottom: 70, left: 40},
+    width = 1200 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// Parse the date / time
+var	parseDate = d3.isoParse
+
+var x = d3.scaleBand().rangeRound([0, width], .05).padding(0.1);
+
+var y = d3.scaleLinear().range([height, 0]);
+
+var xAxis = d3.axisBottom()
+    .scale(x)
+    .ticks(d3.timeYear.every(10))
+    //.range([2000,2020])
+    //.tickFormat(d3.timeFormat("%b"))
+    //.tickSize(10)
+    .tickPadding(10)
+    //.ticks(3)
+    //.tickValues([2000, 2010, 2020]) //
+    .tickFormat(d3.format(".0f"))
+
+var yAxis = d3.axisLeft()
+    .scale(y)
+    .ticks(10);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("nat.csv", function(error, data) {
+
+    data.forEach(function(d) {
+        d.end = parseDate(d.end);
+        d.value = +d.value;
+    });
+
+  x.domain(data.map(function(d) { return d.end; }));
+  y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+  //let xAxisSettings = d3.axisBottom(x)
+           // .tickSize(6)
+           // .tickPadding(6)
+           // .ticks(3)
+           // .tickValues([2000, 210, 2020]) //
+           // .tickFormat(d3.format(".0f"))
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis.ticks(null).tickSize(1))
+    .selectAll("text")
+      .style("text-anchor", "middle")
+//       .attr("dx", "-.8em")
+//       .attr("dy", "-.55em")
+//       .attr("transform", "rotate(-90)" );
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis.ticks(null).tickSize(0))
+    .append("text")
+//       .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+//       .attr("dy", ".71em")
+      .style("text-anchor", "middle")
+      .text("Value");
+
+  svg.selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .style("fill", function(d){ return d.value < d.target ? '#EF5F67': '#3FC974'})
+      .attr("x", function(d) { return x(d.end); })
+      .attr("width", x.bandwidth())
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); });
+  svg.selectAll("lines")
+      .data(data)
+    .enter().append("line")
+      .style("fill", 'none')
+  		.attr("x1", function(d) { return x(d.end) + x.bandwidth()+5; })
+      .attr("x2", function(d) { return x(d.end)-5; })
+   .attr("y1", function(d) { return y(d.target); })
+      .attr("y2", function(d) { return y(d.target); })
+  		.style("stroke-dasharray", [2,2])
+  		.style("stroke", "#000000")
+  .style("stroke-width", 2)
+
+});
+
+</script>
+
+</body>
